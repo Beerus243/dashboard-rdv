@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --rdv-primary: #e73162;
+  --rdv-secondary: #ff4081;
+  --rdv-bg: #f5f5f5;
+  --rdv-surface: #ffffff;
+  --rdv-text: #212121;
+  --rdv-muted: #6b6b6b;
+  --rdv-divider: #e0e0e0;
+  --rdv-appbar: #e73162;
+  --rdv-appbar-dark: #1f2c33;
+  --rdv-like: #4cd964;
+  --rdv-nope: #ff3b30;
+  --rdv-superlike: #007aff;
+  --rdv-rewind: #f5b301;
+}
+
+.dark {
+  --rdv-bg: #0b141a;
+  --rdv-surface: #202c33;
+  --rdv-text: #e9edef;
+  --rdv-muted: #8696a0;
+  --rdv-divider: #313d45;
+}
+
+@theme inline {
+  --color-rdv-primary: var(--rdv-primary);
+  --color-rdv-secondary: var(--rdv-secondary);
+  --color-rdv-bg: var(--rdv-bg);
+  --color-rdv-surface: var(--rdv-surface);
+  --color-rdv-text: var(--rdv-text);
+  --color-rdv-muted: var(--rdv-muted);
+  --color-rdv-divider: var(--rdv-divider);
+  --color-rdv-appbar: var(--rdv-appbar);
+  --color-rdv-appbar-dark: var(--rdv-appbar-dark);
+  --color-rdv-like: var(--rdv-like);
+  --color-rdv-nope: var(--rdv-nope);
+  --color-rdv-superlike: var(--rdv-superlike);
+  --color-rdv-rewind: var(--rdv-rewind);
+  --font-sans: var(--font-nunito);
+}
+
+body {
+  background: var(--rdv-bg);
+  color: var(--rdv-text);
+  font-family: var(--font-nunito), system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+input,
+button {
+  font: inherit;
+}
