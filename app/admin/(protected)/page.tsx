@@ -1,48 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  AlertTriangle,
-  Heart,
-  ImageIcon,
-  MessageCircle,
-  UserPlus,
-  Users,
-} from "lucide-react";
+import Link from "next/link";
 import { ApiError } from "@/lib/api/client";
-import { fetchAdminHealth, fetchAdminUsersStats } from "@/lib/api/admin";
-import type { AdminUsersStats } from "@/lib/types/admin";
-import { cn } from "@/lib/utils/cn";
-import { LoadingState } from "@/components/ui/app-primitives";
-
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  accent = "text-rdv-primary",
-}: {
-  label: string;
-  value: number | string;
-  icon: React.ComponentType<{ className?: string }>;
-  accent?: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            {label}
-          </p>
-          <p className="mt-2 text-3xl font-extrabold text-white">{value}</p>
-        </div>
-        <Icon className={cn("h-5 w-5 opacity-80", accent)} />
-      </div>
-    </div>
-  );
-}
+import {
+  fetchAdminAgeGroupStats,
+  fetchAdminGenderStats,
+  fetchAdminGeographyStats,
+  fetchAdminHealth,
+  fetchAdminUsersStats,
+} from "@/lib/api/admin";
+import type {
+  AdminUsersStats,
+  StatAgeGroup,
+  StatGender,
+  StatGeography,
+} from "@/lib/types/admin";
+import {
+  AdminCard,
+  AdminError,
+  AdminLoading,
+  AdminPageHeader,
+  AdminStatCard,
+} from "@/components/admin/admin-ui";
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<AdminUsersStats | null>(null);
+  const [gender, setGender] = useState<StatGender[]>([]);
+  const [ageGroups, setAgeGroups] = useState<StatAgeGroup[]>([]);
+  const [geography, setGeography] = useState<StatGeography[]>([]);
   const [health, setHealth] = useState<string>("—");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,12 +36,19 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     async function load() {
       try {
-        const [usersStats, healthData] = await Promise.all([
-          fetchAdminUsersStats(),
-          fetchAdminHealth(),
-        ]);
+        const [usersStats, healthData, genderData, ageData, geoData] =
+          await Promise.all([
+            fetchAdminUsersStats(),
+            fetchAdminHealth(),
+            fetchAdminGenderStats(),
+            fetchAdminAgeGroupStats(),
+            fetchAdminGeographyStats(),
+          ]);
         setStats(usersStats);
         setHealth(healthData.status ?? "unknown");
+        setGender(genderData);
+        setAgeGroups(ageData);
+        setGeography(geoData.slice(0, 8));
       } catch (err) {
         setError(
           err instanceof ApiError
@@ -69,90 +62,79 @@ export default function AdminDashboardPage() {
     void load();
   }, []);
 
-  if (isLoading) {
-    return <LoadingState label="Chargement du dashboard…" />;
-  }
-
-  if (error || !stats) {
-    return (
-      <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-red-300">
-        {error ?? "Erreur inconnue"}
-      </div>
-    );
-  }
+  if (isLoading) return <AdminLoading />;
+  if (error || !stats) return <AdminError message={error ?? "Erreur inconnue"} />;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-white">Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Vue d&apos;ensemble de la plateforme RDV — API{" "}
-          <span
-            className={
-              health === "ok"
-                ? "font-semibold text-emerald-400"
-                : "font-semibold text-amber-400"
-            }
-          >
-            {health}
-          </span>
-        </p>
-      </div>
+      <AdminPageHeader
+        title="Dashboard"
+        description={`API ${health === "ok" ? "opérationnelle" : health} — stats via GET /admin/stats/*`}
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Utilisateurs" value={stats.totalUsers} icon={Users} />
-        <StatCard
-          label="Actifs"
-          value={stats.activeUsers}
-          icon={Users}
-          accent="text-emerald-400"
-        />
-        <StatCard
-          label="Nouveaux (24h)"
-          value={stats.newToday}
-          icon={UserPlus}
-          accent="text-sky-400"
-        />
-        <StatCard
-          label="Nouveaux (7j)"
-          value={stats.newWeek}
-          icon={UserPlus}
-          accent="text-sky-400"
-        />
-        <StatCard label="Matchs" value={stats.totalMatches} icon={Heart} accent="text-pink-400" />
-        <StatCard
-          label="Messages"
-          value={stats.totalMessages}
-          icon={MessageCircle}
-          accent="text-violet-400"
-        />
-        <StatCard
+        <AdminStatCard label="Utilisateurs" value={stats.totalUsers} />
+        <AdminStatCard label="Actifs" value={stats.activeUsers} accent="like" />
+        <AdminStatCard label="Matchs" value={stats.totalMatches} accent="primary" />
+        <AdminStatCard label="Messages" value={stats.totalMessages} />
+        <AdminStatCard
           label="Signalements ouverts"
           value={stats.openReports}
-          icon={AlertTriangle}
-          accent="text-amber-400"
+          accent="nope"
         />
-        <StatCard
-          label="Photos en attente"
-          value={stats.pendingPhotos}
-          icon={ImageIcon}
-          accent="text-orange-400"
-        />
+        <AdminStatCard label="Photos en attente" value={stats.pendingPhotos} accent="primary" />
+        <AdminStatCard label="Nouveaux (24h)" value={stats.newToday} accent="like" />
+        <AdminStatCard label="Admins" value={stats.admins} />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-          <p className="text-xs font-semibold uppercase text-slate-500">Bannis</p>
-          <p className="mt-2 text-2xl font-bold text-white">{stats.bannedUsers}</p>
-        </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-          <p className="text-xs font-semibold uppercase text-slate-500">E-mails vérifiés</p>
-          <p className="mt-2 text-2xl font-bold text-white">{stats.verifiedUsers}</p>
-        </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-          <p className="text-xs font-semibold uppercase text-slate-500">Comptes admin</p>
-          <p className="mt-2 text-2xl font-bold text-white">{stats.admins}</p>
-        </div>
+      <div className="grid gap-4 lg:grid-cols-3">
+        <AdminCard className="p-4">
+          <h2 className="mb-3 text-[13px] font-bold text-rdv-text">Genre</h2>
+          <ul className="space-y-2 text-sm">
+            {gender.map((g) => (
+              <li key={g.gender} className="flex justify-between text-rdv-muted">
+                <span>{g.gender}</span>
+                <span className="font-semibold text-rdv-text">{g.count}</span>
+              </li>
+            ))}
+          </ul>
+        </AdminCard>
+        <AdminCard className="p-4">
+          <h2 className="mb-3 text-[13px] font-bold text-rdv-text">
+            Tranches d&apos;âge
+          </h2>
+          <ul className="space-y-2 text-sm">
+            {ageGroups.map((a) => (
+              <li key={a.group} className="flex justify-between text-rdv-muted">
+                <span>{a.group}</span>
+                <span className="font-semibold text-rdv-text">{a.count}</span>
+              </li>
+            ))}
+          </ul>
+        </AdminCard>
+        <AdminCard className="p-4">
+          <h2 className="mb-3 text-[13px] font-bold text-rdv-text">Top villes</h2>
+          <ul className="space-y-2 text-sm">
+            {geography.map((g) => (
+              <li key={g.city} className="flex justify-between text-rdv-muted">
+                <span>{g.city}</span>
+                <span className="font-semibold text-rdv-text">{g.count}</span>
+              </li>
+            ))}
+          </ul>
+        </AdminCard>
+      </div>
+
+      <div className="flex flex-wrap gap-3 text-sm font-semibold">
+        <Link href="/admin/users" className="text-rdv-primary hover:underline">
+          Utilisateurs →
+        </Link>
+        <Link href="/admin/reports" className="text-rdv-primary hover:underline">
+          Signalements →
+        </Link>
+        <Link href="/admin/moderation" className="text-rdv-primary hover:underline">
+          Modération →
+        </Link>
       </div>
     </div>
   );

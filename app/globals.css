@@ -5,48 +5,114 @@
 :root {
   --rdv-primary: #e73162;
   --rdv-secondary: #ff4081;
+  --rdv-gradient-end: #f56b8a;
+
   --rdv-bg: #f5f5f5;
   --rdv-surface: #ffffff;
+  --rdv-app-bar: #e73162;
   --rdv-text: #212121;
-  --rdv-muted: #6b6b6b;
+  --rdv-text-muted: #6b6b6b;
+  --rdv-text-on-primary: #ffffff;
   --rdv-divider: #e0e0e0;
-  --rdv-appbar: #e73162;
-  --rdv-appbar-dark: #1f2c33;
+  --rdv-icon-active: #424242;
+  --rdv-icon-inactive: #bdbdbd;
+  --rdv-message-surface: #fff1f5;
+  --rdv-chip-surface: #fff1f5;
+
   --rdv-like: #4cd964;
+  --rdv-like-surface: #e8f7ed;
   --rdv-nope: #ff3b30;
-  --rdv-superlike: #007aff;
+  --rdv-nope-surface: #ffece9;
+  --rdv-super-like: #007aff;
+  --rdv-super-like-surface: #eaf2ff;
   --rdv-rewind: #f5b301;
+
+  --rdv-radius-card: 18px;
+  --rdv-radius-hero: 28px;
+  --rdv-radius-input: 18px;
+  --rdv-radius-auth: 20px;
+  --rdv-radius-pill: 999px;
+
+  --rdv-shadow-card: 0 5px 12px rgba(0, 0, 0, 0.08);
+  --rdv-padding-page: 20px;
+  --rdv-gap-section: 16px;
+
+  /* Legacy aliases */
+  --rdv-muted: var(--rdv-text-muted);
+  --rdv-appbar: var(--rdv-app-bar);
+  --rdv-appbar-dark: #1f2c33;
+  --rdv-superlike: var(--rdv-super-like);
 }
 
 .dark {
   --rdv-bg: #0b141a;
   --rdv-surface: #202c33;
+  --rdv-app-bar: #1f2c33;
   --rdv-text: #e9edef;
-  --rdv-muted: #8696a0;
+  --rdv-text-muted: #8696a0;
   --rdv-divider: #313d45;
+  --rdv-icon-active: #e9edef;
+  --rdv-icon-inactive: #8696a0;
+  --rdv-message-surface: #2a3942;
+  --rdv-chip-surface: #2a3942;
+  --rdv-like-surface: rgba(76, 217, 100, 0.12);
+  --rdv-nope-surface: rgba(255, 59, 48, 0.12);
+  --rdv-super-like-surface: rgba(0, 122, 255, 0.12);
 }
 
 @theme inline {
   --color-rdv-primary: var(--rdv-primary);
   --color-rdv-secondary: var(--rdv-secondary);
+  --color-rdv-gradient-end: var(--rdv-gradient-end);
   --color-rdv-bg: var(--rdv-bg);
   --color-rdv-surface: var(--rdv-surface);
   --color-rdv-text: var(--rdv-text);
-  --color-rdv-muted: var(--rdv-muted);
+  --color-rdv-muted: var(--rdv-text-muted);
   --color-rdv-divider: var(--rdv-divider);
-  --color-rdv-appbar: var(--rdv-appbar);
+  --color-rdv-appbar: var(--rdv-app-bar);
   --color-rdv-appbar-dark: var(--rdv-appbar-dark);
+  --color-rdv-message: var(--rdv-message-surface);
+  --color-rdv-chip: var(--rdv-chip-surface);
   --color-rdv-like: var(--rdv-like);
+  --color-rdv-like-surface: var(--rdv-like-surface);
   --color-rdv-nope: var(--rdv-nope);
-  --color-rdv-superlike: var(--rdv-superlike);
+  --color-rdv-nope-surface: var(--rdv-nope-surface);
+  --color-rdv-superlike: var(--rdv-super-like);
+  --color-rdv-superlike-surface: var(--rdv-super-like-surface);
   --color-rdv-rewind: var(--rdv-rewind);
   --font-sans: var(--font-nunito);
+  --radius-rdv-card: var(--rdv-radius-card);
+  --radius-rdv-input: var(--rdv-radius-input);
+  --radius-rdv-hero: var(--rdv-radius-hero);
+  --shadow-rdv-card: var(--rdv-shadow-card);
 }
 
 body {
   background: var(--rdv-bg);
   color: var(--rdv-text);
   font-family: var(--font-nunito), system-ui, sans-serif;
+}
+
+.admin-root {
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+}
+
+.rdv-gradient-hero {
+  background: linear-gradient(135deg, #e73162 0%, #f56b8a 100%);
+}
+
+.rdv-card {
+  border-radius: var(--rdv-radius-card);
+  border: 1px solid color-mix(in srgb, var(--rdv-divider) 100%, transparent);
+  background: var(--rdv-surface);
+  box-shadow: var(--rdv-shadow-card);
 }
 
 * {

@@ -6,8 +6,8 @@ import { useState } from "react";
 import { Eye, EyeOff, Lock, Mail, Shield } from "lucide-react";
 import { ApiError } from "@/lib/api/client";
 import { useAdminAuth } from "@/components/providers/admin-auth-provider";
-import { cn } from "@/lib/utils/cn";
 import { AdminBootstrapPanel } from "@/components/admin/admin-bootstrap-panel";
+import { cn } from "@/lib/utils/cn";
 
 const ADMIN_ROLE_LABELS: Record<string, string> = {
   SUPER_ADMIN: "Super administrateur",
@@ -39,8 +39,8 @@ export function AdminLoginForm() {
     } catch (err) {
       setError(
         err instanceof ApiError
-          ? err.message === "Invalid admin credentials"
-            ? "Identifiants admin invalides ou compte sans rôle admin."
+          ? err.statusCode === 401
+            ? "E-mail, mot de passe ou rôle admin incorrect."
             : err.message
           : "Connexion admin impossible pour le moment.",
       );
@@ -50,59 +50,61 @@ export function AdminLoginForm() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md px-4 py-10">
+    <div className="admin-root mx-auto w-full max-w-md px-4 py-10">
       <div className="mb-8 text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-rdv-primary/15 ring-1 ring-rdv-primary/30">
-          <Shield className="h-8 w-8 text-rdv-primary" />
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[var(--rdv-radius-auth)] bg-white/20 ring-1 ring-white/30 dark:bg-rdv-primary/15 dark:ring-rdv-primary/30">
+          <Shield className="h-8 w-8 text-white dark:text-rdv-primary" />
         </div>
-        <h1 className="text-2xl font-extrabold text-white">
+        <h1 className="text-[22px] font-extrabold text-white dark:text-rdv-text">
           Console administration
         </h1>
-        <p className="mt-2 text-sm text-slate-400">
+        <p className="mt-2 text-sm text-white/80 dark:text-rdv-muted">
           Accès réservé aux comptes avec rôle{" "}
           {Object.keys(ADMIN_ROLE_LABELS).slice(0, 2).join(", ")}…
         </p>
       </div>
 
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur">
+      <div className="rounded-[var(--rdv-radius-auth)] border border-rdv-divider bg-rdv-surface p-6 shadow-[var(--rdv-shadow-card)]">
         <form onSubmit={handleSubmit} className="space-y-4">
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold text-slate-200">
+            <span className="mb-1.5 block text-[13px] font-semibold text-rdv-text">
               E-mail administrateur
             </span>
             <span className="relative flex items-center">
-              <Mail className="pointer-events-none absolute left-3 h-5 w-5 text-slate-500" />
+              <Mail className="pointer-events-none absolute left-3 h-5 w-5 text-rdv-muted" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@rdv.app"
                 autoComplete="username"
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 py-3 pl-11 pr-4 text-white outline-none focus:border-rdv-primary focus:ring-1 focus:ring-rdv-primary"
+                className="w-full rounded-[var(--rdv-radius-input)] border border-rdv-divider bg-rdv-surface py-3 pl-11 pr-4 text-rdv-text outline-none focus:border-rdv-primary focus:ring-[1.5px] focus:ring-rdv-primary/30"
               />
             </span>
           </label>
 
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold text-slate-200">
+            <span className="mb-1.5 block text-[13px] font-semibold text-rdv-text">
               Mot de passe
             </span>
             <span className="relative flex items-center">
-              <Lock className="pointer-events-none absolute left-3 h-5 w-5 text-slate-500" />
+              <Lock className="pointer-events-none absolute left-3 h-5 w-5 text-rdv-muted" />
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 autoComplete="current-password"
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 py-3 pl-11 pr-12 text-white outline-none focus:border-rdv-primary focus:ring-1 focus:ring-rdv-primary"
+                className="w-full rounded-[var(--rdv-radius-input)] border border-rdv-divider bg-rdv-surface py-3 pl-11 pr-12 text-rdv-text outline-none focus:border-rdv-primary focus:ring-[1.5px] focus:ring-rdv-primary/30"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3 text-slate-400 hover:text-white"
+                className="absolute right-3 text-rdv-muted hover:text-rdv-text"
                 aria-label={
-                  showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"
+                  showPassword
+                    ? "Masquer le mot de passe"
+                    : "Afficher le mot de passe"
                 }
               >
                 {showPassword ? (
@@ -115,7 +117,7 @@ export function AdminLoginForm() {
           </label>
 
           {error ? (
-            <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+            <p className="rounded-[var(--rdv-radius-input)] border border-rdv-nope/30 bg-rdv-nope-surface px-3 py-2 text-sm text-rdv-nope">
               {error}
             </p>
           ) : null}
@@ -124,7 +126,7 @@ export function AdminLoginForm() {
             type="submit"
             disabled={!canSubmit}
             className={cn(
-              "flex w-full items-center justify-center rounded-xl bg-rdv-primary py-3.5 text-base font-bold text-white transition hover:bg-rdv-primary/90",
+              "flex w-full items-center justify-center rounded-[var(--rdv-radius-input)] bg-rdv-primary py-3.5 text-base font-bold text-white transition hover:bg-rdv-primary/90",
               !canSubmit && "opacity-50",
             )}
           >
@@ -136,12 +138,15 @@ export function AdminLoginForm() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-slate-500">
+        <p className="mt-6 text-center text-xs text-rdv-muted">
           Compte déjà admin ? Connecte-toi ci-dessus.
         </p>
         <AdminBootstrapPanel />
         <p className="mt-3 text-center text-sm">
-          <Link href="/login" className="font-semibold text-slate-400 hover:text-white">
+          <Link
+            href="/login"
+            className="font-semibold text-rdv-primary hover:underline"
+          >
             ← Retour à l&apos;app utilisateur
           </Link>
         </p>

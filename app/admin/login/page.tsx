@@ -8,8 +8,10 @@ export const metadata = {
 export default function AdminLoginPage() {
   return (
     <AdminGate mode="guest">
-      <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-        <AdminLoginForm />
+      <main className="admin-root min-h-screen bg-rdv-bg dark:bg-rdv-bg">
+        <div className="rdv-gradient-hero px-4 pb-16 pt-10 dark:bg-none dark:pb-0 dark:pt-0">
+          <AdminLoginForm />
+        </div>
       </main>
     </AdminGate>
   );

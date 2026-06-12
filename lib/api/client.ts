@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "./config";
+import { getApiRequestBaseUrl } from "./config";
 
 export class ApiError extends Error {
   statusCode: number;
@@ -32,16 +32,25 @@ export async function apiRequest<T>(
     ...headers,
   };
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...rest,
-    headers: requestHeaders,
-    body:
-      body instanceof FormData
-        ? body
-        : body !== undefined
-          ? JSON.stringify(body)
-          : undefined,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${getApiRequestBaseUrl()}${path}`, {
+      ...rest,
+      headers: requestHeaders,
+      body:
+        body instanceof FormData
+          ? body
+          : body !== undefined
+            ? JSON.stringify(body)
+            : undefined,
+    });
+  } catch {
+    throw new ApiError(
+      "Impossible de joindre l'API. Vérifie ta connexion ou réessaie si le serveur Render vient de se réveiller.",
+      0,
+      path,
+    );
+  }
 
   const contentType = response.headers.get("content-type") ?? "";
   const payload = contentType.includes("application/json")

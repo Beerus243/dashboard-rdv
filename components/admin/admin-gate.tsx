@@ -27,7 +27,7 @@ export function AdminGate({
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
+      <div className="flex min-h-screen items-center justify-center bg-rdv-bg">
         <LoadingState label="Vérification de la session admin…" />
       </div>
     );

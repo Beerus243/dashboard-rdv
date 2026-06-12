@@ -13,6 +13,14 @@ export const API_BASE_URL = normalizeBaseUrl(
   process.env.NEXT_PUBLIC_API_URL ?? "https://backendrdv-jf71.onrender.com",
 );
 
+/** Côté navigateur : proxy Next.js (évite CORS Render). Côté serveur : URL directe. */
+export function getApiRequestBaseUrl(): string {
+  if (typeof window !== "undefined") {
+    return "/api/backend";
+  }
+  return API_BASE_URL;
+}
+
 export function resolveImageUrl(rawPath: string): string {
   const value = rawPath.trim();
   if (!value) return value;
