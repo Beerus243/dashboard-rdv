@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Flag } from "lucide-react";
 import { ApiError } from "@/lib/api/client";
 import { closeAdminReport, fetchAdminReports } from "@/lib/api/admin";
 import type { AdminReport, ReportStatus } from "@/lib/types/admin";
@@ -10,13 +11,17 @@ import {
   AdminCard,
   AdminEmpty,
   AdminError,
-  AdminLoading,
+  AdminFilterTabs,
   AdminPageHeader,
   AdminPagination,
   AdminTable,
+  AdminTableSkeleton,
 } from "@/components/admin/admin-ui";
 
-const filters: ReportStatus[] = ["OPEN", "CLOSED"];
+const filters: { value: ReportStatus; label: string }[] = [
+  { value: "OPEN", label: "Ouverts" },
+  { value: "CLOSED", label: "Clôturés" },
+];
 
 export default function AdminReportsPage() {
   const [items, setItems] = useState<AdminReport[]>([]);
@@ -60,44 +65,74 @@ export default function AdminReportsPage() {
     <div>
       <AdminPageHeader
         title="Signalements"
-        description="GET /admin/reports — POST /admin/reports/:id/close"
+        description="Traitez les reports entre utilisateurs et clôturez les dossiers résolus."
         actions={
-          <div className="flex gap-2">
-            {filters.map((f) => (
-              <AdminButton
-                key={f}
-                variant={status === f ? "primary" : "ghost"}
-                onClick={() => { setStatus(f); setPage(1); }}
-              >
-                {f}
-              </AdminButton>
-            ))}
-          </div>
+          <AdminFilterTabs
+            options={filters}
+            value={status}
+            onChange={(v) => {
+              setStatus(v);
+              setPage(1);
+            }}
+          />
         }
       />
-      {isLoading && items.length === 0 ? <AdminLoading /> : null}
-      {error ? <AdminError message={error} /> : null}
+
+      {isLoading && items.length === 0 ? <AdminTableSkeleton rows={5} /> : null}
+      {error ? <AdminError message={error} onRetry={() => void load()} /> : null}
+
       {!isLoading && !error && items.length === 0 ? (
-        <AdminEmpty message={`Aucun signalement ${status}.`} />
-      ) : null}
-      {items.length > 0 ? (
         <AdminCard>
-          <AdminTable headers={["Signalé", "Motif", "Statut", "Date", "Action"]}>
+          <AdminEmpty
+            message={
+              status === "OPEN"
+                ? "Aucun signalement ouvert — tout est calme."
+                : "Aucun signalement clôturé pour l'instant."
+            }
+            icon={Flag}
+          />
+        </AdminCard>
+      ) : null}
+
+      {items.length > 0 ? (
+        <AdminCard className={isLoading ? "opacity-60" : undefined}>
+          <AdminTable
+            headers={["Signalé", "Par", "Motif", "Statut", "Date", ""]}
+          >
             {items.map((r) => (
               <tr key={r.id}>
-                <td className="px-4 py-3">{r.reported?.name ?? "—"}</td>
-                <td className="px-4 py-3">{r.reason}</td>
+                <td className="px-4 py-3 font-semibold">
+                  {r.reported?.name ?? "—"}
+                </td>
+                <td className="px-4 py-3 text-rdv-muted">
+                  {r.reporter?.name ?? "—"}
+                </td>
+                <td className="max-w-xs px-4 py-3">
+                  <p className="font-medium">{r.reason}</p>
+                  {r.description ? (
+                    <p className="mt-0.5 line-clamp-1 text-xs text-rdv-muted">
+                      {r.description}
+                    </p>
+                  ) : null}
+                </td>
                 <td className="px-4 py-3">
-                  <AdminBadge variant={r.status === "OPEN" ? "warning" : "success"}>
-                    {r.status}
+                  <AdminBadge
+                    variant={r.status === "OPEN" ? "danger" : "success"}
+                    dot
+                  >
+                    {r.status === "OPEN" ? "Ouvert" : "Clôturé"}
                   </AdminBadge>
                 </td>
-                <td className="px-4 py-3 text-xs">
+                <td className="px-4 py-3 text-xs text-rdv-muted">
                   {new Date(r.createdAt).toLocaleString("fr-FR")}
                 </td>
                 <td className="px-4 py-3">
                   {r.status === "OPEN" ? (
-                    <AdminButton variant="primary" onClick={() => void handleClose(r.id)}>
+                    <AdminButton
+                      variant="primary"
+                      size="sm"
+                      onClick={() => void handleClose(r.id)}
+                    >
                       Clôturer
                     </AdminButton>
                   ) : null}
@@ -105,7 +140,12 @@ export default function AdminReportsPage() {
               </tr>
             ))}
           </AdminTable>
-          <AdminPagination page={page} hasMore={hasMore} total={total} onPageChange={setPage} />
+          <AdminPagination
+            page={page}
+            hasMore={hasMore}
+            total={total}
+            onPageChange={setPage}
+          />
         </AdminCard>
       ) : null}
     </div>

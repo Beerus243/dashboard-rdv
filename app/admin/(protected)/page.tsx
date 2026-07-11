@@ -1,9 +1,18 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { RefreshCw } from "lucide-react";
+import {
+  Bug,
+  Flag,
+  Heart,
+  ImageIcon,
+  MessageSquare,
+  RefreshCw,
+  UserCheck,
+  Users,
+  Zap,
+} from "lucide-react";
 import { ApiError } from "@/lib/api/client";
 import {
   fetchAdminDashboard,
@@ -16,7 +25,6 @@ import {
   fetchAdminUsersOnline,
   fetchAdminUsersRecent,
 } from "@/lib/api/admin";
-import { resolveImageUrl } from "@/lib/api/config";
 import type {
   AdminDashboard,
   AdminOnlineUser,
@@ -32,10 +40,16 @@ import {
   AdminBadge,
   AdminButton,
   AdminCard,
+  AdminEmpty,
   AdminError,
-  AdminLoading,
-  AdminPageHeader,
+  AdminHeroBanner,
+  AdminListItem,
+  AdminQuickAction,
+  AdminSectionTitle,
+  AdminSkeleton,
   AdminStatCard,
+  AdminStatSkeleton,
+  AdminUserAvatar,
 } from "@/components/admin/admin-ui";
 
 const ONLINE_POLL_MS = 45_000;
@@ -43,13 +57,13 @@ const ONLINE_POLL_MS = 45_000;
 function RetentionBar({ label, value }: { label: string; value: number }) {
   return (
     <div>
-      <div className="mb-1 flex justify-between text-sm">
-        <span className="text-rdv-muted">{label}</span>
-        <span className="font-semibold text-rdv-text">{value}%</span>
+      <div className="mb-1.5 flex justify-between text-sm">
+        <span className="font-medium text-rdv-muted">{label}</span>
+        <span className="font-bold tabular-nums text-rdv-text">{value}%</span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-rdv-divider">
+      <div className="h-2.5 overflow-hidden rounded-full bg-rdv-divider">
         <div
-          className="h-full rounded-full bg-rdv-primary transition-all"
+          className="h-full rounded-full bg-gradient-to-r from-rdv-primary to-rdv-gradient-end transition-all duration-700"
           style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
         />
       </div>
@@ -57,30 +71,29 @@ function RetentionBar({ label, value }: { label: string; value: number }) {
   );
 }
 
-function UserAvatar({
-  name,
-  avatarUrl,
+function MetricRow({
+  label,
+  value,
+  accent,
 }: {
-  name: string;
-  avatarUrl?: string | null;
+  label: string;
+  value: string | number;
+  accent?: "like" | "nope" | "primary";
 }) {
-  const initial = name.charAt(0).toUpperCase();
-  if (avatarUrl) {
-    return (
-      <Image
-        src={resolveImageUrl(avatarUrl)}
-        alt=""
-        width={40}
-        height={40}
-        className="h-10 w-10 shrink-0 rounded-full object-cover"
-        unoptimized
-      />
-    );
-  }
+  const colors = {
+    like: "text-rdv-like",
+    nope: "text-rdv-nope",
+    primary: "text-rdv-primary",
+  };
   return (
-    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rdv-message text-sm font-bold text-rdv-primary">
-      {initial}
-    </span>
+    <li className="flex items-center justify-between gap-4 py-1.5 text-sm">
+      <span className="text-rdv-muted">{label}</span>
+      <span
+        className={`font-bold tabular-nums ${accent ? colors[accent] : "text-rdv-text"}`}
+      >
+        {value}
+      </span>
+    </li>
   );
 }
 
@@ -131,7 +144,7 @@ export default function AdminDashboardPage() {
         fetchAdminStatsRetention(),
         fetchAdminStatsOverview(),
         fetchAdminUsersOnline(),
-        fetchAdminUsersRecent(10),
+        fetchAdminUsersRecent(8),
       ]);
       setDashboard(dash);
       setUsersStats(users);
@@ -163,22 +176,38 @@ export default function AdminDashboardPage() {
     return () => clearInterval(id);
   }, [loadOnline]);
 
-  if (isLoading) return <AdminLoading />;
-  if (error || !dashboard) {
-    return <AdminError message={error ?? "Erreur inconnue"} />;
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <AdminSkeleton className="h-28 w-full rounded-[var(--rdv-radius-hero)]" />
+        <AdminStatSkeleton count={5} />
+        <div className="grid gap-4 lg:grid-cols-2">
+          <AdminSkeleton className="h-64 w-full" />
+          <AdminSkeleton className="h-64 w-full" />
+        </div>
+      </div>
+    );
   }
+
+  if (error || !dashboard) {
+    return (
+      <AdminError message={error ?? "Erreur inconnue"} onRetry={() => void loadAll()} />
+    );
+  }
+
+  const onlineCount = activity?.onlineNow ?? online.length;
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader
-        title="Dashboard"
-        description="GET /admin/dashboard — stats détaillées en parallèle"
-        actions={
+      <AdminHeroBanner
+        title="Vue d'ensemble"
+        subtitle={`${dashboard.totalUsers} utilisateurs · ${onlineCount} en ligne · ${dashboard.newUsersToday} nouveaux aujourd'hui`}
+        action={
           <AdminButton
-            variant="ghost"
+            variant="secondary"
             onClick={() => void loadAll(true)}
             disabled={isRefreshing}
-            className="inline-flex items-center gap-2"
+            className="border-white/30 bg-white/15 text-white hover:bg-white/25"
           >
             <RefreshCw
               className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
@@ -189,149 +218,104 @@ export default function AdminDashboardPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <AdminStatCard label="Utilisateurs" value={dashboard.totalUsers} />
+        <AdminStatCard
+          label="Utilisateurs"
+          value={dashboard.totalUsers}
+          icon={Users}
+          hint={`+${dashboard.newUsersThisWeek} cette semaine`}
+        />
         <AdminStatCard
           label="En ligne"
-          value={activity?.onlineNow ?? online.length}
+          value={onlineCount}
+          icon={Zap}
           accent="like"
+          hint="Mis à jour toutes les 45 s"
         />
         <AdminStatCard
           label="Matchs"
           value={dashboard.matches}
+          icon={Heart}
           accent="primary"
         />
-        <AdminStatCard label="Messages" value={dashboard.messages} />
+        <AdminStatCard
+          label="Messages"
+          value={dashboard.messages}
+          icon={MessageSquare}
+          hint={messages ? `${messages.today} aujourd'hui` : undefined}
+        />
         <AdminStatCard
           label="Profils complets"
           value={dashboard.profilesCompleted}
+          icon={UserCheck}
+          hint={`${Math.round((dashboard.profilesCompleted / Math.max(dashboard.totalUsers, 1)) * 100)}% du total`}
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
-        <AdminCard className="p-4">
-          <h2 className="mb-3 text-[13px] font-bold text-rdv-text">
-            Utilisateurs
-          </h2>
-          {usersStats ? (
-            <ul className="space-y-2 text-sm">
-              <li className="flex justify-between text-rdv-muted">
-                <span>Total actifs</span>
-                <span className="font-semibold text-rdv-text">
-                  {usersStats.total}
-                </span>
-              </li>
-              <li className="flex justify-between text-rdv-muted">
-                <span>Hommes</span>
-                <span className="font-semibold text-rdv-text">
-                  {usersStats.male}
-                </span>
-              </li>
-              <li className="flex justify-between text-rdv-muted">
-                <span>Femmes</span>
-                <span className="font-semibold text-rdv-text">
-                  {usersStats.female}
-                </span>
-              </li>
-              <li className="flex justify-between text-rdv-muted">
-                <span>Vérifiés</span>
-                <span className="font-semibold text-rdv-like">
-                  {usersStats.verified}
-                </span>
-              </li>
-            </ul>
-          ) : null}
-        </AdminCard>
+      <div>
+        <AdminSectionTitle title="Indicateurs détaillés" />
+        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+          <AdminCard className="p-4">
+            <h3 className="mb-3 text-sm font-bold text-rdv-text">Utilisateurs</h3>
+            {usersStats ? (
+              <ul>
+                <MetricRow label="Total actifs" value={usersStats.total} />
+                <MetricRow label="Hommes" value={usersStats.male} />
+                <MetricRow label="Femmes" value={usersStats.female} />
+                <MetricRow
+                  label="Vérifiés"
+                  value={usersStats.verified}
+                  accent="like"
+                />
+              </ul>
+            ) : null}
+          </AdminCard>
 
-        <AdminCard className="p-4">
-          <h2 className="mb-3 text-[13px] font-bold text-rdv-text">Activité</h2>
-          {activity ? (
-            <ul className="space-y-2 text-sm">
-              <li className="flex justify-between text-rdv-muted">
-                <span>En ligne</span>
-                <span className="font-semibold text-rdv-like">
-                  {activity.onlineNow}
-                </span>
-              </li>
-              <li className="flex justify-between text-rdv-muted">
-                <span>Actifs 24 h</span>
-                <span className="font-semibold text-rdv-text">
-                  {activity.active24h}
-                </span>
-              </li>
-              <li className="flex justify-between text-rdv-muted">
-                <span>Actifs 7 j</span>
-                <span className="font-semibold text-rdv-text">
-                  {activity.active7d}
-                </span>
-              </li>
-              <li className="flex justify-between text-rdv-muted">
-                <span>Inactifs</span>
-                <span className="font-semibold text-rdv-muted">
-                  {activity.inactive}
-                </span>
-              </li>
-            </ul>
-          ) : null}
-        </AdminCard>
+          <AdminCard className="p-4">
+            <h3 className="mb-3 text-sm font-bold text-rdv-text">Activité</h3>
+            {activity ? (
+              <ul>
+                <MetricRow label="En ligne" value={activity.onlineNow} accent="like" />
+                <MetricRow label="Actifs 24 h" value={activity.active24h} />
+                <MetricRow label="Actifs 7 j" value={activity.active7d} />
+                <MetricRow label="Inactifs" value={activity.inactive} />
+              </ul>
+            ) : null}
+          </AdminCard>
 
-        <AdminCard className="p-4">
-          <h2 className="mb-3 text-[13px] font-bold text-rdv-text">Messages</h2>
-          {messages ? (
-            <ul className="space-y-2 text-sm">
-              <li className="flex justify-between text-rdv-muted">
-                <span>Total</span>
-                <span className="font-semibold text-rdv-text">
-                  {messages.totalMessages}
-                </span>
-              </li>
-              <li className="flex justify-between text-rdv-muted">
-                <span>Aujourd&apos;hui</span>
-                <span className="font-semibold text-rdv-text">
-                  {messages.today}
-                </span>
-              </li>
-              <li className="flex justify-between text-rdv-muted">
-                <span>Moy. / user</span>
-                <span className="font-semibold text-rdv-text">
-                  {messages.averagePerUser}
-                </span>
-              </li>
-            </ul>
-          ) : null}
-        </AdminCard>
+          <AdminCard className="p-4">
+            <h3 className="mb-3 text-sm font-bold text-rdv-text">Messages</h3>
+            {messages ? (
+              <ul>
+                <MetricRow label="Total" value={messages.totalMessages} />
+                <MetricRow label="Aujourd'hui" value={messages.today} />
+                <MetricRow
+                  label="Moy. / user"
+                  value={messages.averagePerUser}
+                />
+              </ul>
+            ) : null}
+          </AdminCard>
 
-        <AdminCard className="p-4">
-          <h2 className="mb-3 text-[13px] font-bold text-rdv-text">Swipes</h2>
-          {swipes ? (
-            <ul className="space-y-2 text-sm">
-              <li className="flex justify-between text-rdv-muted">
-                <span>Likes</span>
-                <span className="font-semibold text-rdv-like">
-                  {swipes.likes}
-                </span>
-              </li>
-              <li className="flex justify-between text-rdv-muted">
-                <span>Passes</span>
-                <span className="font-semibold text-rdv-nope">
-                  {swipes.passes}
-                </span>
-              </li>
-              <li className="flex justify-between text-rdv-muted">
-                <span>Super likes</span>
-                <span className="font-semibold text-rdv-superlike">
-                  {swipes.superLikes}
-                </span>
-              </li>
-            </ul>
-          ) : null}
-        </AdminCard>
+          <AdminCard className="p-4">
+            <h3 className="mb-3 text-sm font-bold text-rdv-text">Swipes</h3>
+            {swipes ? (
+              <ul>
+                <MetricRow label="Likes" value={swipes.likes} accent="like" />
+                <MetricRow label="Passes" value={swipes.passes} accent="nope" />
+                <MetricRow
+                  label="Super likes"
+                  value={swipes.superLikes}
+                  accent="primary"
+                />
+              </ul>
+            ) : null}
+          </AdminCard>
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <AdminCard className="p-4">
-          <h2 className="mb-4 text-[13px] font-bold text-rdv-text">
-            Rétention J1 / J7 / J30
-          </h2>
+          <AdminSectionTitle title="Rétention" />
           {retention ? (
             <div className="space-y-4">
               <RetentionBar label="Jour 1" value={retention.day1} />
@@ -339,26 +323,16 @@ export default function AdminDashboardPage() {
               <RetentionBar label="Jour 30" value={retention.day30} />
             </div>
           ) : null}
-          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-rdv-divider pt-4 text-sm">
-            <div>
-              <p className="text-rdv-muted">Nouveaux aujourd&apos;hui</p>
-              <p className="font-bold text-rdv-text">
-                {dashboard.newUsersToday}
+          <div className="mt-5 grid grid-cols-2 gap-3 border-t border-rdv-divider pt-4">
+            <div className="rounded-[var(--rdv-radius-input)] bg-rdv-bg p-3">
+              <p className="text-xs text-rdv-muted">Actifs aujourd'hui</p>
+              <p className="text-lg font-extrabold tabular-nums">
+                {dashboard.activeToday}
               </p>
             </div>
-            <div>
-              <p className="text-rdv-muted">Nouveaux cette semaine</p>
-              <p className="font-bold text-rdv-text">
-                {dashboard.newUsersThisWeek}
-              </p>
-            </div>
-            <div>
-              <p className="text-rdv-muted">Actifs aujourd&apos;hui</p>
-              <p className="font-bold text-rdv-text">{dashboard.activeToday}</p>
-            </div>
-            <div>
-              <p className="text-rdv-muted">Actifs cette semaine</p>
-              <p className="font-bold text-rdv-text">
+            <div className="rounded-[var(--rdv-radius-input)] bg-rdv-bg p-3">
+              <p className="text-xs text-rdv-muted">Actifs cette semaine</p>
+              <p className="text-lg font-extrabold tabular-nums">
                 {dashboard.activeThisWeek}
               </p>
             </div>
@@ -367,115 +341,116 @@ export default function AdminDashboardPage() {
 
         {overview ? (
           <AdminCard className="p-4">
-            <h2 className="mb-3 text-[13px] font-bold text-rdv-text">
-              Modération & infra
-            </h2>
-            <ul className="space-y-2 text-sm">
-              <li className="flex justify-between text-rdv-muted">
-                <span>Signalements ouverts</span>
-                <span className="font-semibold text-rdv-nope">
-                  {overview.openReports}
-                </span>
-              </li>
-              <li className="flex justify-between text-rdv-muted">
-                <span>Photos en attente</span>
-                <span className="font-semibold text-rdv-primary">
-                  {overview.pendingPhotos}
-                </span>
-              </li>
-              <li className="flex justify-between text-rdv-muted">
-                <span>Admins</span>
-                <span className="font-semibold text-rdv-text">
-                  {overview.admins}
-                </span>
-              </li>
-              <li className="flex justify-between text-rdv-muted">
-                <span>Bannis</span>
-                <span className="font-semibold text-rdv-text">
-                  {overview.bannedUsers}
-                </span>
-              </li>
+            <AdminSectionTitle title="Modération" />
+            <ul className="space-y-1">
+              <MetricRow
+                label="Signalements ouverts"
+                value={overview.openReports}
+                accent="nope"
+              />
+              <MetricRow
+                label="Photos en attente"
+                value={overview.pendingPhotos}
+                accent="primary"
+              />
+              <MetricRow label="Admins" value={overview.admins} />
+              <MetricRow label="Comptes bannis" value={overview.bannedUsers} />
             </ul>
-            <div className="mt-4 flex flex-wrap gap-3 text-sm font-semibold">
-              <Link href="/admin/reports" className="text-rdv-primary hover:underline">
-                Signalements →
-              </Link>
-              <Link href="/admin/moderation" className="text-rdv-primary hover:underline">
-                Modération →
-              </Link>
-              <Link href="/admin/bugs" className="text-rdv-primary hover:underline">
-                Bugs app →
-              </Link>
+            <div className="mt-5 grid gap-2 sm:grid-cols-2">
+              <AdminQuickAction
+                href="/admin/reports"
+                label="Signalements"
+                description="Traiter les reports utilisateurs"
+                icon={Flag}
+              />
+              <AdminQuickAction
+                href="/admin/moderation"
+                label="Modération"
+                description="Photos et messages"
+                icon={ImageIcon}
+              />
+              <AdminQuickAction
+                href="/admin/bugs"
+                label="Bugs app"
+                description="Retours des utilisateurs"
+                icon={Bug}
+              />
+              <AdminQuickAction
+                href="/admin/users"
+                label="Utilisateurs"
+                description="Gérer les comptes"
+                icon={Users}
+              />
             </div>
           </AdminCard>
         ) : null}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <AdminCard className="p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-[13px] font-bold text-rdv-text">
-              En ligne maintenant
-            </h2>
-            <AdminBadge variant="success">{online.length}</AdminBadge>
+        <AdminCard className="p-2">
+          <div className="flex items-center justify-between px-2 py-2">
+            <AdminSectionTitle title="En ligne" className="mb-0" />
+            <AdminBadge variant="success" dot>
+              {online.length}
+            </AdminBadge>
           </div>
           {online.length === 0 ? (
-            <p className="py-6 text-center text-sm text-rdv-muted">
-              Aucun utilisateur en ligne.
-            </p>
+            <AdminEmpty message="Aucun utilisateur connecté pour le moment." />
           ) : (
-            <ul className="max-h-80 space-y-3 overflow-y-auto">
+            <div className="max-h-80 overflow-y-auto px-1 pb-1">
               {online.map((u) => (
-                <li key={u.id} className="flex items-center gap-3">
-                  <UserAvatar name={u.name} avatarUrl={u.avatarUrl} />
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      href={`/admin/users/${u.id}`}
-                      className="truncate font-semibold text-rdv-text hover:text-rdv-primary"
-                    >
-                      {u.name}
-                    </Link>
-                    <p className="truncate text-xs text-rdv-muted">{u.email}</p>
-                  </div>
-                  <span className="h-2 w-2 shrink-0 rounded-full bg-rdv-like" />
-                </li>
+                <AdminListItem
+                  key={u.id}
+                  href={`/admin/users/${u.id}`}
+                  avatar={
+                    <AdminUserAvatar
+                      name={u.name}
+                      avatarUrl={u.avatarUrl}
+                      online
+                    />
+                  }
+                  title={u.name}
+                  subtitle={u.email}
+                />
               ))}
-            </ul>
+            </div>
           )}
         </AdminCard>
 
-        <AdminCard className="p-4">
-          <h2 className="mb-3 text-[13px] font-bold text-rdv-text">
-            Derniers inscrits
-          </h2>
+        <AdminCard className="p-2">
+          <AdminSectionTitle title="Derniers inscrits" className="px-2 pt-2" />
           {recent.length === 0 ? (
-            <p className="py-6 text-center text-sm text-rdv-muted">
-              Aucun nouvel inscrit.
-            </p>
+            <AdminEmpty message="Aucune inscription récente." />
           ) : (
-            <ul className="max-h-80 space-y-3 overflow-y-auto">
+            <div className="max-h-80 overflow-y-auto px-1 pb-1">
               {recent.map((u) => (
-                <li key={u.id} className="flex items-center gap-3">
-                  <UserAvatar name={u.name} avatarUrl={u.avatarUrl} />
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      href={`/admin/users/${u.id}`}
-                      className="truncate font-semibold text-rdv-text hover:text-rdv-primary"
-                    >
-                      {u.name}
-                    </Link>
-                    <p className="truncate text-xs text-rdv-muted">
-                      {[u.city, u.gender].filter(Boolean).join(" · ") ||
-                        u.email}
-                    </p>
-                  </div>
-                  <AdminBadge variant={u.isComplete ? "success" : "default"}>
-                    {u.isComplete ? "Complet" : "Incomplet"}
-                  </AdminBadge>
-                </li>
+                <AdminListItem
+                  key={u.id}
+                  href={`/admin/users/${u.id}`}
+                  avatar={
+                    <AdminUserAvatar name={u.name} avatarUrl={u.avatarUrl} />
+                  }
+                  title={u.name}
+                  subtitle={
+                    [u.city, u.gender].filter(Boolean).join(" · ") || u.email
+                  }
+                  trailing={
+                    <AdminBadge variant={u.isComplete ? "success" : "default"}>
+                      {u.isComplete ? "Complet" : "Incomplet"}
+                    </AdminBadge>
+                  }
+                />
               ))}
-            </ul>
+            </div>
           )}
+          <div className="border-t border-rdv-divider p-3">
+            <Link
+              href="/admin/users"
+              className="text-sm font-semibold text-rdv-primary hover:underline"
+            >
+              Voir tous les utilisateurs →
+            </Link>
+          </div>
         </AdminCard>
       </div>
     </div>

@@ -8,10 +8,10 @@ import {
   AdminCard,
   AdminEmpty,
   AdminError,
-  AdminLoading,
   AdminPageHeader,
   AdminPagination,
   AdminTable,
+  AdminTableSkeleton,
 } from "@/components/admin/admin-ui";
 
 export default function AdminAuditPage() {
@@ -41,8 +41,11 @@ export default function AdminAuditPage() {
 
   return (
     <div>
-      <AdminPageHeader title="Audit" description="GET /admin/audit/logs" />
-      {isLoading ? <AdminLoading /> : null}
+      <AdminPageHeader
+        title="Journal d'audit"
+        description="Historique des actions sensibles effectuées par les administrateurs."
+      />
+      {isLoading ? <AdminTableSkeleton rows={8} /> : null}
       {error ? <AdminError message={error} /> : null}
       {!isLoading && !error && items.length === 0 ? (
         <AdminEmpty message="Aucune entrée d'audit." />

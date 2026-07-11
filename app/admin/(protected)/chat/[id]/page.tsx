@@ -11,7 +11,7 @@ import {
   AdminError,
   AdminLoading,
   AdminPageHeader,
-  AdminTable,
+  AdminUserAvatar,
 } from "@/components/admin/admin-ui";
 
 export default function AdminChatDetailPage() {
@@ -23,10 +23,14 @@ export default function AdminChatDetailPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetchAdminConversationMessages(params.id, { limit: 50 });
+        const res = await fetchAdminConversationMessages(params.id, {
+          limit: 50,
+        });
         setMessages(res.data);
       } catch (err) {
-        setError(err instanceof ApiError ? err.message : "Conversation introuvable");
+        setError(
+          err instanceof ApiError ? err.message : "Conversation introuvable",
+        );
       } finally {
         setIsLoading(false);
       }
@@ -34,30 +38,43 @@ export default function AdminChatDetailPage() {
     void load();
   }, [params.id]);
 
-  if (isLoading) return <AdminLoading />;
+  if (isLoading) return <AdminLoading label="Chargement des messages…" />;
   if (error) return <AdminError message={error} />;
 
   return (
     <div>
       <AdminPageHeader
         title="Conversation"
-        description={`GET /admin/chat/conversations/${params.id}`}
+        description={`${messages.length} message${messages.length > 1 ? "s" : ""}`}
+        backHref="/admin/chat"
       />
+
       {messages.length === 0 ? (
-        <AdminEmpty message="Aucun message." />
-      ) : (
         <AdminCard>
-          <AdminTable headers={["Expéditeur", "Message", "Date"]}>
+          <AdminEmpty message="Cette conversation ne contient aucun message." />
+        </AdminCard>
+      ) : (
+        <AdminCard className="p-4">
+          <div className="max-h-[70vh] space-y-3 overflow-y-auto">
             {messages.map((m) => (
-              <tr key={m.id}>
-                <td className="px-4 py-3">{m.sender?.name ?? "—"}</td>
-                <td className="px-4 py-3">{m.content}</td>
-                <td className="px-4 py-3 text-xs">
-                  {new Date(m.createdAt).toLocaleString("fr-FR")}
-                </td>
-              </tr>
+              <div key={m.id} className="flex items-end gap-2">
+                <AdminUserAvatar
+                  name={m.sender?.name ?? "?"}
+                  avatarUrl={m.sender?.avatarUrl}
+                  size="sm"
+                />
+                <div className="max-w-[85%] rounded-[var(--rdv-radius-input)] rounded-bl-sm bg-rdv-message px-3 py-2">
+                  <p className="text-xs font-semibold text-rdv-primary">
+                    {m.sender?.name ?? "Inconnu"}
+                  </p>
+                  <p className="mt-0.5 text-sm text-rdv-text">{m.content}</p>
+                  <p className="mt-1 text-[10px] text-rdv-muted">
+                    {new Date(m.createdAt).toLocaleString("fr-FR")}
+                  </p>
+                </div>
+              </div>
             ))}
-          </AdminTable>
+          </div>
         </AdminCard>
       )}
     </div>

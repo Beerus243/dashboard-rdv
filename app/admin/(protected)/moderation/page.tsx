@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
+import { Check, ImageIcon, MessageSquare, X } from "lucide-react";
 import { ApiError } from "@/lib/api/client";
 import {
   fetchModerationMessages,
@@ -20,16 +21,24 @@ import {
   AdminCard,
   AdminEmpty,
   AdminError,
-  AdminLoading,
+  AdminFilterTabs,
   AdminPageHeader,
+  AdminSkeleton,
   AdminTable,
 } from "@/components/admin/admin-ui";
 
 type Tab = "photos" | "messages";
 
+const PHOTO_STATUS_LABELS: Record<PhotoModerationStatus, string> = {
+  PENDING: "En attente",
+  APPROVED: "Approuvées",
+  REJECTED: "Refusées",
+};
+
 export default function AdminModerationPage() {
   const [tab, setTab] = useState<Tab>("photos");
-  const [photoStatus, setPhotoStatus] = useState<PhotoModerationStatus>("PENDING");
+  const [photoStatus, setPhotoStatus] =
+    useState<PhotoModerationStatus>("PENDING");
   const [photos, setPhotos] = useState<AdminModerationPhoto[]>([]);
   const [messages, setMessages] = useState<AdminModerationMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,7 +48,10 @@ export default function AdminModerationPage() {
     setIsLoading(true);
     try {
       if (tab === "photos") {
-        const res = await fetchModerationPhotos({ status: photoStatus, limit: 30 });
+        const res = await fetchModerationPhotos({
+          status: photoStatus,
+          limit: 30,
+        });
         setPhotos(res.data);
       } else {
         const res = await fetchModerationMessages({ limit: 30 });
@@ -66,65 +78,107 @@ export default function AdminModerationPage() {
     }
   }
 
+  const tabOptions: { value: Tab; label: string }[] = [
+    { value: "photos", label: "Photos" },
+    { value: "messages", label: "Messages" },
+  ];
+
+  const photoFilters = (
+    ["PENDING", "APPROVED", "REJECTED"] as const
+  ).map((s) => ({ value: s, label: PHOTO_STATUS_LABELS[s] }));
+
   return (
     <div>
       <AdminPageHeader
         title="Modération"
-        description="GET/POST /admin/moderation/photos — GET /admin/moderation/messages"
+        description="Validez les photos uploadées et consultez les messages signalés."
         actions={
-          <div className="flex gap-2">
-            <AdminButton variant={tab === "photos" ? "primary" : "ghost"} onClick={() => setTab("photos")}>
-              Photos
-            </AdminButton>
-            <AdminButton variant={tab === "messages" ? "primary" : "ghost"} onClick={() => setTab("messages")}>
-              Messages
-            </AdminButton>
-          </div>
+          <AdminFilterTabs options={tabOptions} value={tab} onChange={setTab} />
         }
       />
 
       {tab === "photos" ? (
-        <div className="mb-4 flex gap-2">
-          {(["PENDING", "APPROVED", "REJECTED"] as const).map((s) => (
-            <AdminButton
-              key={s}
-              variant={photoStatus === s ? "primary" : "ghost"}
-              onClick={() => setPhotoStatus(s)}
-            >
-              {s}
-            </AdminButton>
-          ))}
+        <div className="mb-4">
+          <AdminFilterTabs
+            options={photoFilters}
+            value={photoStatus}
+            onChange={setPhotoStatus}
+          />
         </div>
       ) : null}
 
-      {isLoading ? <AdminLoading /> : null}
-      {error ? <AdminError message={error} /> : null}
+      {isLoading ? (
+        tab === "photos" ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <AdminSkeleton key={i} className="aspect-square w-full rounded-[var(--rdv-radius-card)]" />
+            ))}
+          </div>
+        ) : (
+          <AdminSkeleton className="h-64 w-full" />
+        )
+      ) : null}
+
+      {error ? <AdminError message={error} onRetry={() => void load()} /> : null}
 
       {tab === "photos" && !isLoading && !error ? (
         photos.length === 0 ? (
-          <AdminEmpty message="Aucune photo dans cette file." />
+          <AdminCard>
+            <AdminEmpty
+              message="Aucune photo dans cette file."
+              icon={ImageIcon}
+            />
+          </AdminCard>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {photos.map((p) => (
               <AdminCard key={p.id} className="overflow-hidden">
-                <div className="relative aspect-square bg-rdv-message">
-                  <Image src={resolveImageUrl(p.url)} alt="" fill className="object-cover" unoptimized />
+                <div className="relative aspect-[4/5] bg-rdv-message">
+                  <Image
+                    src={resolveImageUrl(p.url)}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                  {photoStatus === "PENDING" ? (
+                    <div className="absolute inset-x-0 bottom-0 flex gap-2 bg-gradient-to-t from-black/70 to-transparent p-3 pt-10">
+                      <AdminButton
+                        variant="primary"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => void handlePhoto(p.id, "approve")}
+                      >
+                        <Check className="h-4 w-4" />
+                        OK
+                      </AdminButton>
+                      <AdminButton
+                        variant="danger"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => void handlePhoto(p.id, "reject")}
+                      >
+                        <X className="h-4 w-4" />
+                        Refuser
+                      </AdminButton>
+                    </div>
+                  ) : null}
                 </div>
                 <div className="space-y-2 p-3">
                   <p className="text-sm font-semibold text-rdv-text">
                     {p.profile?.user?.name ?? "Utilisateur"}
                   </p>
-                  <AdminBadge>{p.moderationStatus}</AdminBadge>
-                  {photoStatus === "PENDING" ? (
-                    <div className="flex gap-2 pt-1">
-                      <AdminButton variant="primary" onClick={() => void handlePhoto(p.id, "approve")}>
-                        Approuver
-                      </AdminButton>
-                      <AdminButton variant="danger" onClick={() => void handlePhoto(p.id, "reject")}>
-                        Refuser
-                      </AdminButton>
-                    </div>
-                  ) : null}
+                  <AdminBadge
+                    variant={
+                      p.moderationStatus === "APPROVED"
+                        ? "success"
+                        : p.moderationStatus === "REJECTED"
+                          ? "danger"
+                          : "warning"
+                    }
+                  >
+                    {PHOTO_STATUS_LABELS[p.moderationStatus]}
+                  </AdminBadge>
                 </div>
               </AdminCard>
             ))}
@@ -134,15 +188,24 @@ export default function AdminModerationPage() {
 
       {tab === "messages" && !isLoading && !error ? (
         messages.length === 0 ? (
-          <AdminEmpty message="Aucun message de users signalés." />
+          <AdminCard>
+            <AdminEmpty
+              message="Aucun message de profils signalés."
+              icon={MessageSquare}
+            />
+          </AdminCard>
         ) : (
           <AdminCard>
             <AdminTable headers={["Expéditeur", "Message", "Date"]}>
               {messages.map((m) => (
                 <tr key={m.id}>
-                  <td className="px-4 py-3">{m.sender?.name ?? "—"}</td>
-                  <td className="max-w-md truncate px-4 py-3">{m.content}</td>
-                  <td className="px-4 py-3 text-xs">
+                  <td className="px-4 py-3 font-semibold">
+                    {m.sender?.name ?? "—"}
+                  </td>
+                  <td className="max-w-md px-4 py-3">
+                    <p className="line-clamp-2">{m.content}</p>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-rdv-muted">
                     {new Date(m.createdAt).toLocaleString("fr-FR")}
                   </td>
                 </tr>

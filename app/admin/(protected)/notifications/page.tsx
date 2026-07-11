@@ -75,7 +75,7 @@ export default function AdminNotificationsPage() {
     <div className="space-y-6">
       <AdminPageHeader
         title="Notifications"
-        description="GET/POST /admin/notifications"
+        description="Envoyez des notifications push et consultez l'historique."
       />
 
       <AdminCard className="p-4">

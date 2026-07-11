@@ -40,7 +40,7 @@ export default function AdminHealthPage() {
     <div className="space-y-6">
       <AdminPageHeader
         title="Infrastructure"
-        description="GET /admin/health — GET /admin/stats/revenue"
+        description="État des services backend et suivi des revenus (MVP)."
       />
       <AdminCard className="p-4">
         <div className="mb-4 flex items-center gap-3">
