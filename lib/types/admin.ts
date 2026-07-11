@@ -49,6 +49,92 @@ export type AdminUsersStats = {
   pendingPhotos: number;
 };
 
+/** Ancien KPI global — désormais `GET /admin/stats/overview` */
+export type AdminStatsOverview = AdminUsersStats;
+
+export type AdminDashboard = {
+  totalUsers: number;
+  activeToday: number;
+  activeThisWeek: number;
+  newUsersToday: number;
+  newUsersThisWeek: number;
+  matches: number;
+  messages: number;
+  profilesCompleted: number;
+};
+
+export type AdminStatsUsers = {
+  total: number;
+  male: number;
+  female: number;
+  verified: number;
+  premium: number;
+};
+
+export type AdminStatsActivity = {
+  onlineNow: number;
+  active24h: number;
+  active7d: number;
+  inactive: number;
+};
+
+export type AdminStatsMatches = {
+  totalMatches: number;
+  today: number;
+  week: number;
+};
+
+export type AdminStatsMessages = {
+  totalMessages: number;
+  today: number;
+  averagePerUser: number;
+};
+
+export type AdminStatsSwipes = {
+  likes: number;
+  passes: number;
+  superLikes: number;
+};
+
+export type AdminStatsRetention = {
+  day1: number;
+  day7: number;
+  day30: number;
+};
+
+export type AdminOnlineUser = {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl?: string | null;
+  lastSeen: string;
+  isOnline: boolean;
+};
+
+export type AdminRecentUser = {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+  gender?: string | null;
+  city?: string | null;
+  isComplete: boolean;
+  avatarUrl?: string | null;
+};
+
+export type BugReportStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
+
+export type AdminBugReport = {
+  id: string;
+  title: string;
+  description: string;
+  platform: string;
+  appVersion: string;
+  status: BugReportStatus;
+  createdAt: string;
+  user?: { id: string; name: string; email: string };
+};
+
 export type AdminUserListItem = {
   id: string;
   email: string;

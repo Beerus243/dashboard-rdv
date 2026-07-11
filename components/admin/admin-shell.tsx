@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Activity,
   Bell,
+  Bug,
   Flag,
   Heart,
   ImageIcon,
@@ -33,6 +34,7 @@ const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/users", label: "Utilisateurs", icon: Users },
   { href: "/admin/reports", label: "Signalements", icon: Flag },
+  { href: "/admin/bugs", label: "Bugs app", icon: Bug },
   { href: "/admin/moderation", label: "Modération", icon: ImageIcon },
   { href: "/admin/matches", label: "Matchs", icon: Heart },
   { href: "/admin/chat", label: "Chat", icon: MessageSquare },

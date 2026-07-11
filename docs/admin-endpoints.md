@@ -301,13 +301,22 @@ Query : `page`, `limit`, `search`, `type` (`MATCH`|`MESSAGE`|`LIKE`|`SYSTEM`), `
 
 | Méthode | Route | Rôles | Description |
 |---------|-------|-------|-------------|
-| GET | `/admin/stats/users` | read* | KPIs globaux |
-| GET | `/admin/stats/gender` | read* | Répartition genre |
+| GET | `/admin/dashboard` | read* | Vue d'ensemble page d'accueil |
+| GET | `/admin/stats/overview` | read* | Ancien KPI global (modération, admins…) |
+| GET | `/admin/stats/users` | read* | Répartition genre / vérifiés |
+| GET | `/admin/stats/activity` | read* | Online, actifs 24 h / 7 j |
+| GET | `/admin/stats/matches` | read* | Matchs total / today / week |
+| GET | `/admin/stats/messages` | read* | Messages total / today / moyenne |
+| GET | `/admin/stats/swipes` | read* | Likes / passes / super likes |
+| GET | `/admin/stats/retention` | read* | Rétention J1 / J7 / J30 (%) |
+| GET | `/admin/stats/gender` | read* | Répartition genre (legacy) |
 | GET | `/admin/stats/age-groups` | read* | Tranches d'âge |
 | GET | `/admin/stats/geography` | read* | Top 50 villes |
 | GET | `/admin/stats/revenue` | infra | Placeholder MVP |
 
-### GET `/admin/stats/users` — exemple réponse
+> **Juillet 2026** : l'ancien payload KPI sur `GET /admin/stats/users` est sur **`/admin/stats/overview`**. Voir [`admin-changelog-july-2026.md`](./admin-changelog-july-2026.md).
+
+### GET `/admin/stats/overview` — exemple réponse
 
 ```json
 {
@@ -325,6 +334,25 @@ Query : `page`, `limit`, `search`, `type` (`MATCH`|`MESSAGE`|`LIKE`|`SYSTEM`), `
   "pendingPhotos": 4
 }
 ```
+
+---
+
+## 8b. Utilisateurs temps réel — `/admin/users`
+
+| Méthode | Route | Rôles | Description |
+|---------|-------|-------|-------------|
+| GET | `/admin/users/online` | read* | Utilisateurs connectés |
+| GET | `/admin/users/recent` | read* | Derniers inscrits (`limit` 1–100) |
+
+---
+
+## 8c. Bugs app — `/admin/bugs`
+
+| Méthode | Route | Rôles | Description |
+|---------|-------|-------|-------------|
+| GET | `/admin/bugs` | read* | Liste signalements bugs (`status`, pagination) |
+
+Côté app mobile : `POST /bugs` (utilisateur connecté).
 
 ---
 
@@ -373,37 +401,47 @@ Pas de modèle Communautés / Événements en base pour l'instant.
 
 ---
 
-## Récapitulatif — 27 routes (25 actives + 2 placeholders 404)
+## Récapitulatif — routes actives
 
 | # | Méthode | Route |
 |---|---------|-------|
 | 1 | POST | `/admin/auth/login` |
 | 2 | POST | `/admin/auth/bootstrap` |
 | 3 | GET | `/admin/auth/me` |
-| 4 | GET | `/admin/users` |
-| 5 | GET | `/admin/users/:id` |
-| 6 | PUT | `/admin/users/:id` |
-| 7 | DELETE | `/admin/users/:id` |
-| 8 | GET | `/admin/reports` |
-| 9 | GET | `/admin/reports/:id` |
-| 10 | POST | `/admin/reports/:id/close` |
-| 11 | GET | `/admin/moderation/photos` |
-| 12 | POST | `/admin/moderation/photos/:id` |
-| 13 | GET | `/admin/moderation/messages` |
-| 14 | GET | `/admin/matches` |
-| 15 | GET | `/admin/chat/conversations` |
-| 16 | GET | `/admin/chat/conversations/:id` |
-| 17 | GET | `/admin/notifications` |
-| 18 | POST | `/admin/notifications` |
-| 19 | GET | `/admin/stats/users` |
-| 20 | GET | `/admin/stats/gender` |
-| 21 | GET | `/admin/stats/age-groups` |
-| 22 | GET | `/admin/stats/geography` |
-| 23 | GET | `/admin/stats/revenue` |
-| 24 | GET | `/admin/health` |
-| 25 | GET | `/admin/audit/logs` |
-| 26 | GET | `/admin/communities` *(404)* |
-| 27 | GET | `/admin/events` *(404)* |
+| 4 | GET | `/admin/dashboard` |
+| 5 | GET | `/admin/users` |
+| 6 | GET | `/admin/users/online` |
+| 7 | GET | `/admin/users/recent` |
+| 8 | GET | `/admin/users/:id` |
+| 9 | PUT | `/admin/users/:id` |
+| 10 | DELETE | `/admin/users/:id` |
+| 11 | GET | `/admin/reports` |
+| 12 | GET | `/admin/reports/:id` |
+| 13 | POST | `/admin/reports/:id/close` |
+| 14 | GET | `/admin/bugs` |
+| 15 | GET | `/admin/moderation/photos` |
+| 16 | POST | `/admin/moderation/photos/:id` |
+| 17 | GET | `/admin/moderation/messages` |
+| 18 | GET | `/admin/matches` |
+| 19 | GET | `/admin/chat/conversations` |
+| 20 | GET | `/admin/chat/conversations/:id` |
+| 21 | GET | `/admin/notifications` |
+| 22 | POST | `/admin/notifications` |
+| 23 | GET | `/admin/stats/overview` |
+| 24 | GET | `/admin/stats/users` |
+| 25 | GET | `/admin/stats/activity` |
+| 26 | GET | `/admin/stats/matches` |
+| 27 | GET | `/admin/stats/messages` |
+| 28 | GET | `/admin/stats/swipes` |
+| 29 | GET | `/admin/stats/retention` |
+| 30 | GET | `/admin/stats/gender` |
+| 31 | GET | `/admin/stats/age-groups` |
+| 32 | GET | `/admin/stats/geography` |
+| 33 | GET | `/admin/stats/revenue` |
+| 34 | GET | `/admin/health` |
+| 35 | GET | `/admin/audit/logs` |
+| — | GET | `/admin/communities` *(404)* |
+| — | GET | `/admin/events` *(404)* |
 
 ---
 

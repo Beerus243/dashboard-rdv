@@ -3,18 +3,29 @@ import { AdminPaths } from "./admin-paths";
 import { getAdminAccessToken } from "../auth/admin-session";
 import type {
   AdminAuditLog,
+  AdminBugReport,
   AdminChatMessage,
   AdminConversation,
+  AdminDashboard,
   AdminHealth,
   AdminLoginResponse,
   AdminMatch,
   AdminModerationMessage,
   AdminModerationPhoto,
   AdminNotificationItem,
+  AdminOnlineUser,
+  AdminRecentUser,
   AdminReport,
+  AdminStatsActivity,
+  AdminStatsMatches,
+  AdminStatsMessages,
+  AdminStatsOverview,
+  AdminStatsRetention,
+  AdminStatsSwipes,
+  AdminStatsUsers,
   AdminUser,
   AdminUserListItem,
-  AdminUsersStats,
+  BugReportStatus,
   NotificationType,
   PaginatedResponse,
   PhotoModerationStatus,
@@ -95,6 +106,16 @@ export async function updateAdminUser(id: string, body: UpdateAdminUserBody) {
 
 export async function banAdminUser(id: string) {
   return adminFetch(AdminPaths.user(id), { method: "DELETE" });
+}
+
+export async function fetchAdminUsersOnline() {
+  return adminFetch<{ data: AdminOnlineUser[] }>(AdminPaths.usersOnline);
+}
+
+export async function fetchAdminUsersRecent(limit = 20) {
+  return adminFetch<{ data: AdminRecentUser[] }>(
+    `${AdminPaths.usersRecent}${buildQuery({ limit })}`,
+  );
 }
 
 // — Reports —
@@ -198,8 +219,41 @@ export async function sendAdminNotification(body: {
 
 // — Stats —
 
+export async function fetchAdminDashboard() {
+  return adminFetch<AdminDashboard>(AdminPaths.dashboard);
+}
+
+export async function fetchAdminStatsOverview() {
+  return adminFetch<AdminStatsOverview>(AdminPaths.statsOverview);
+}
+
+export async function fetchAdminStatsUsers() {
+  return adminFetch<AdminStatsUsers>(AdminPaths.statsUsers);
+}
+
+export async function fetchAdminStatsActivity() {
+  return adminFetch<AdminStatsActivity>(AdminPaths.statsActivity);
+}
+
+export async function fetchAdminStatsMatches() {
+  return adminFetch<AdminStatsMatches>(AdminPaths.statsMatches);
+}
+
+export async function fetchAdminStatsMessages() {
+  return adminFetch<AdminStatsMessages>(AdminPaths.statsMessages);
+}
+
+export async function fetchAdminStatsSwipes() {
+  return adminFetch<AdminStatsSwipes>(AdminPaths.statsSwipes);
+}
+
+export async function fetchAdminStatsRetention() {
+  return adminFetch<AdminStatsRetention>(AdminPaths.statsRetention);
+}
+
+/** @deprecated Utiliser fetchAdminStatsOverview ou fetchAdminStatsUsers */
 export async function fetchAdminUsersStats() {
-  return adminFetch<AdminUsersStats>(AdminPaths.statsUsers);
+  return fetchAdminStatsOverview();
 }
 
 export async function fetchAdminGenderStats() {
@@ -227,5 +281,17 @@ export async function fetchAdminHealth() {
 export async function fetchAdminAuditLogs(params?: QueryParams) {
   return adminFetch<PaginatedResponse<AdminAuditLog>>(
     `${AdminPaths.auditLogs}${buildQuery(params)}`,
+  );
+}
+
+// — Bugs —
+
+export async function fetchAdminBugs(params?: {
+  page?: number;
+  limit?: number;
+  status?: BugReportStatus;
+}) {
+  return adminFetch<PaginatedResponse<AdminBugReport>>(
+    `${AdminPaths.bugs}${buildQuery(params)}`,
   );
 }

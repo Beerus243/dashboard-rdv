@@ -7,6 +7,8 @@ Spec produit complète (PRD + UX Next.js) : [`admin-dashboard-prd.md`](./admin-d
 
 **Liste complète des routes** : [`admin-endpoints.md`](./admin-endpoints.md)
 
+**Changelog juillet 2026** : [`admin-changelog-july-2026.md`](./admin-changelog-july-2026.md) (dashboard, stats, bugs, online/recent)
+
 ---
 
 ## Bootstrap — premier super admin
