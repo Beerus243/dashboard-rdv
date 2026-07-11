@@ -14,6 +14,10 @@ const nunito = Nunito({
 export const metadata: Metadata = {
   title: "RDV — Rencontres",
   description: "Application de rencontres RDV — découverte, matchs et messages",
+  icons: {
+    icon: "/assets/icon.png",
+    apple: "/assets/icon.png",
+  },
 };
 
 export default function RootLayout({

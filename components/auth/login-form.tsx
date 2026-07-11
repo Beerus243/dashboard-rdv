@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { RdvLogo } from "@/components/brand/rdv-logo";
 import { ApiError } from "@/lib/api/client";
 import { fetchLoginForm } from "@/lib/api/auth";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -60,10 +61,9 @@ export function LoginForm() {
   return (
     <div className="mx-auto w-full max-w-md space-y-4 px-4 py-8">
       <AppCard className="overflow-hidden p-6">
-        <div className="mb-2 flex items-center gap-2">
-          <span className="rounded-2xl bg-rdv-primary px-4 py-2 text-2xl font-black tracking-tight text-white">
-            RDV
-          </span>
+        <div className="mb-4 flex items-center gap-3">
+          <RdvLogo size="md" priority />
+          <span className="text-2xl font-black tracking-tight text-rdv-primary">RDV</span>
         </div>
         <h1 className="text-[22px] font-extrabold text-rdv-text">
           Reconnecte-toi à ce qui compte

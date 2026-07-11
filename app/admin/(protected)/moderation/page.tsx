@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
-import { Check, ImageIcon, MessageSquare, X } from "lucide-react";
+import { Check, Flag, ImageIcon, Info, MessageSquare, X } from "lucide-react";
 import { ApiError } from "@/lib/api/client";
 import {
   fetchModerationMessages,
@@ -18,6 +19,7 @@ import type {
 import {
   AdminBadge,
   AdminButton,
+  AdminCallout,
   AdminCard,
   AdminEmpty,
   AdminError,
@@ -79,8 +81,8 @@ export default function AdminModerationPage() {
   }
 
   const tabOptions: { value: Tab; label: string }[] = [
-    { value: "photos", label: "Photos" },
-    { value: "messages", label: "Messages" },
+    { value: "photos", label: "File photos (uploads)" },
+    { value: "messages", label: "Messages signalés" },
   ];
 
   const photoFilters = (
@@ -91,14 +93,47 @@ export default function AdminModerationPage() {
     <div>
       <AdminPageHeader
         title="Modération"
-        description="Validez les photos uploadées et consultez les messages signalés."
+        description="Deux files distinctes : validation des nouvelles photos, et messages des utilisateurs signalés."
         actions={
           <AdminFilterTabs options={tabOptions} value={tab} onChange={setTab} />
         }
       />
 
       {tab === "photos" ? (
-        <div className="mb-4">
+        <AdminCallout variant="info">
+          <p className="flex items-start gap-2">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-rdv-primary" />
+            <span>
+              <strong>Ce ne sont pas des signalements.</strong> Chaque photo
+              ajoutée dans l&apos;app passe ici en{" "}
+              <strong>En attente</strong> avant d&apos;apparaître dans le feed
+              (seules les photos <strong>Approuvées</strong> sont visibles).
+              Les reports utilisateur → utilisateur sont dans{" "}
+              <Link href="/admin/reports" className="font-semibold text-rdv-primary hover:underline">
+                Signalements
+              </Link>
+              .
+            </span>
+          </p>
+        </AdminCallout>
+      ) : (
+        <AdminCallout variant="warning">
+          <p className="flex items-start gap-2">
+            <Flag className="mt-0.5 h-4 w-4 shrink-0 text-rdv-superlike" />
+            <span>
+              Messages des utilisateurs qui ont au moins un signalement{" "}
+              <strong>OPEN</strong> sur{" "}
+              <Link href="/admin/reports" className="font-semibold text-rdv-primary hover:underline">
+                Signalements
+              </Link>
+              .
+            </span>
+          </p>
+        </AdminCallout>
+      )}
+
+      {tab === "photos" ? (
+        <div className="mb-4 mt-4">
           <AdminFilterTabs
             options={photoFilters}
             value={photoStatus}
@@ -125,7 +160,11 @@ export default function AdminModerationPage() {
         photos.length === 0 ? (
           <AdminCard>
             <AdminEmpty
-              message="Aucune photo dans cette file."
+              message={
+                photoStatus === "PENDING"
+                  ? "Aucune photo en attente de validation."
+                  : `Aucune photo ${PHOTO_STATUS_LABELS[photoStatus].toLowerCase()}.`
+              }
               icon={ImageIcon}
             />
           </AdminCard>
@@ -164,8 +203,8 @@ export default function AdminModerationPage() {
                     </div>
                   ) : null}
                 </div>
-                <div className="space-y-2 p-3">
-                  <p className="text-sm font-semibold text-rdv-text">
+                <div className="flex flex-wrap gap-1.5 p-3">
+                  <p className="w-full text-sm font-semibold text-rdv-text">
                     {p.profile?.user?.name ?? "Utilisateur"}
                   </p>
                   <AdminBadge

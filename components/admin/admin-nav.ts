@@ -39,7 +39,7 @@ export const adminNavGroups: AdminNavGroup[] = [
     items: [
       { href: "/admin/reports", label: "Signalements", icon: Flag },
       { href: "/admin/bugs", label: "Bugs app", icon: Bug },
-      { href: "/admin/moderation", label: "Photos & messages", icon: ImageIcon },
+      { href: "/admin/moderation", label: "Modération contenu", icon: ImageIcon },
       { href: "/admin/notifications", label: "Notifications", icon: Bell },
     ],
   },

@@ -3,14 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  LogOut,
-  Menu,
-  Moon,
-  Shield,
-  Sun,
-  X,
-} from "lucide-react";
+import { LogOut, Menu, Moon, Sun, X } from "lucide-react";
+import { RdvLogo } from "@/components/brand/rdv-logo";
 import { useAdminAuth } from "@/components/providers/admin-auth-provider";
 import { useTheme } from "@/components/providers/theme-provider";
 import {
@@ -100,14 +94,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="admin-root flex min-h-screen bg-rdv-bg text-rdv-text">
       <aside className="hidden w-64 shrink-0 flex-col border-r border-rdv-divider bg-rdv-surface lg:flex">
-        <div className="flex items-center gap-3 border-b border-rdv-divider px-5 py-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-[var(--rdv-radius-input)] bg-rdv-primary text-white">
-            <Shield className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-sm font-extrabold">RDV Admin</p>
-            <p className="text-xs text-rdv-muted">Console de gestion</p>
-          </div>
+        <div className="border-b border-rdv-divider px-5 py-5">
+          <RdvLogo
+            href="/admin"
+            showText
+            title="RDV Admin"
+            subtitle="Console de gestion"
+            priority
+          />
         </div>
         <nav className="flex-1 overflow-y-auto p-3">
           <NavLinks pathname={pathname} />
@@ -137,10 +131,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           />
           <aside className="absolute left-0 top-0 flex h-full w-[min(100%,18rem)] flex-col bg-rdv-surface shadow-xl">
             <div className="flex items-center justify-between border-b border-rdv-divider px-4 py-4">
-              <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-rdv-primary" />
-                <span className="font-extrabold">RDV Admin</span>
-              </div>
+              <RdvLogo href="/admin" showText title="RDV Admin" size="sm" />
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
@@ -169,7 +160,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <Menu className="h-5 w-5" />
             </button>
 
-            <div className="min-w-0 flex-1 lg:hidden">
+            <div className="flex min-w-0 flex-1 items-center gap-2 lg:hidden">
+              <RdvLogo size="sm" href="/admin" />
               <p className="truncate text-sm font-extrabold">{pageTitle}</p>
             </div>
 

@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Eye, EyeOff, Lock, Mail, Shield } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { RdvLogo } from "@/components/brand/rdv-logo";
 import { ApiError } from "@/lib/api/client";
 import { useAdminAuth } from "@/components/providers/admin-auth-provider";
 import { AdminBootstrapPanel } from "@/components/admin/admin-bootstrap-panel";
@@ -51,11 +52,9 @@ export function AdminLoginForm() {
 
   return (
     <div className="admin-root mx-auto w-full max-w-md px-4 py-10">
-      <div className="mb-8 text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[var(--rdv-radius-auth)] bg-white/20 ring-1 ring-white/30 dark:bg-rdv-primary/15 dark:ring-rdv-primary/30">
-          <Shield className="h-8 w-8 text-white dark:text-rdv-primary" />
-        </div>
-        <h1 className="text-[22px] font-extrabold text-white dark:text-rdv-text">
+      <div className="mb-8 flex flex-col items-center text-center">
+        <RdvLogo size="xl" priority imageClassName="rounded-[var(--rdv-radius-auth)]" />
+        <h1 className="mt-4 text-[22px] font-extrabold text-white dark:text-rdv-text">
           Console administration
         </h1>
         <p className="mt-2 text-sm text-white/80 dark:text-rdv-muted">

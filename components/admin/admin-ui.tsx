@@ -587,6 +587,29 @@ export function AdminQuickAction({
   );
 }
 
+export function AdminCallout({
+  children,
+  variant = "info",
+}: {
+  children: React.ReactNode;
+  variant?: "info" | "warning";
+}) {
+  const styles = {
+    info: "border-rdv-primary/20 bg-rdv-message text-rdv-text",
+    warning: "border-rdv-superlike/30 bg-rdv-superlike-surface text-rdv-text",
+  };
+  return (
+    <div
+      className={cn(
+        "rounded-[var(--rdv-radius-input)] border px-4 py-3 text-sm leading-relaxed",
+        styles[variant],
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function AdminHeroBanner({
   title,
   subtitle,
